@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:task="http://www.springframework.org/schema/task" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-3.2.xsd    
+    http://www.springframework.org/schema/security 
+    http://www.springframework.org/schema/security/spring-security-3.2.xsd
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util-3.2.xsd
+    http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+   
+    
+    
+   	<!-- <context:property-placeholder location="classpath:jdbc.properties" /> -->
+    
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!--  允许上传的最大文件大小，默认-1表示无限制 -->
+		<property name="maxUploadSize" value="104857600" />
+		<!-- 文件上传时允许写到内存中的最大值 -->
+		<property name="maxInMemorySize" value="4096" />
+	</bean>
+    
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+    
+	<!-- 引入mybatis配置文件 -->
+	<import resource="classpath:/spring-mybatis.xml" />	
+	
+    <!-- 扫描文件（自动将service层注入） -->
+    <context:component-scan base-package="com.xh.*.service"/>
+
+    <!-- 实现ApplicationContextAware接口的回调方法工具类 -->
+    <!-- <bean id="springContextUtil" class="com.xh.sci.common.core.ApplicationContextAwareImpl" lazy-init="false" />
+     -->
+    <!-- 使用国际化消息 -->  
+   <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">   
+     	<property name="basename" value="messages"/>  
+   </bean>   
+   
+	<!-- 获取本地区的语言消息 -->  
+   <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"/>
+    
+   <!-- 整合TaskExecutor线程池的配置
+   		pool-size,表示线程池活跃的线程数为100，最大线程数为200
+		queue-capacity,表示任务队列的最大容量 
+		rejection-policy,当等待队已满时的策略(当pool已经达到max size的时候，如何处理新任务)，分为丢弃、由任务执行器直接运行等方式
+				CALLER_RUNS:不在新线程中执行任务，而是有调用者所在的线程来执行   -->
+   <task:executor id="executor" keep-alive="3600" pool-size="100-200" queue-capacity="500" rejection-policy="CALLER_RUNS" />
+   <task:scheduler id="scheduler" pool-size="1000" />  
+   <!-- 启用annotation方式 -->
+   <task:annotation-driven executor="executor" scheduler="scheduler" proxy-target-class="true"/>
+      
+</beans>
